@@ -17,6 +17,7 @@ enum Endpoint: String {
     case storefront = "storefront"
     case playlists = "playlists"
     case tracks = "tracks"
+    case artists = "artists"
     case albums = "albums"
     case songs = "songs"
     case search = "search"

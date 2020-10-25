@@ -179,3 +179,38 @@ extension AppleMusicAPI {
         }
     }
 }
+
+// MARK: - Artists
+
+extension AppleMusicAPI {
+    
+    public func getAllLibraryArtists(completion: @escaping ([LibraryArtist]?, Error?) -> Void) {
+        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.me], Endpoint[.library], Endpoint[.artists]])
+        if let url = url {
+            request(url: url, completion: completion)
+        } else {
+            completion(nil, ApiError.invalidUrl)
+        }
+    }
+    
+    public func getLibraryArtist(id: String, completion: @escaping ([LibraryArtist]?, Error?) -> Void) {
+        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.me], Endpoint[.library], Endpoint[.artists], id])
+        if let url = url {
+            request(url: url, completion: completion)
+        } else {
+            completion(nil, ApiError.invalidUrl)
+        }
+    }
+    
+    public func getCatalogArtist(id: String, completion: @escaping ([Artist]?, Error?) -> Void) {
+        guard storefront != nil else {
+            fatalError("Apple Music manager not initialized, call initialize() before use")
+        }
+        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.catalog], storefront!, Endpoint[.artists], id])
+        if let url = url {
+            request(url: url, completion: completion)
+        } else {
+            completion(nil, ApiError.invalidUrl)
+        }
+    }
+}
