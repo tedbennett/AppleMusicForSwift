@@ -7,9 +7,10 @@
 
 import Foundation
 
-var baseUrl = "https://api.music.apple.com/v1/"
+var baseUrl = "https://api.music.apple.com/"
 
 enum Endpoints: String {
+    case version = "v1"
     case me = "me"
     case library = "library"
     case catalog = "catalog"

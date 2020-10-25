@@ -19,7 +19,7 @@ public class AppleMusicAPI {
 // MARK: - Requests
 
 extension AppleMusicAPI {
-    private func request<Object: Decodable>(url: URLRequest, completion: @escaping (Object?, Error?) -> Void) {
+    private func request<Object: AppleMusicResource>(url: URLRequest, completion: @escaping ([Object]?, Error?) -> Void) {
         
         URLSession.shared.dataTask(with: url) { (data, response, error) in
             
@@ -46,8 +46,27 @@ extension AppleMusicAPI {
             decoder.keyDecodingStrategy = .convertFromSnakeCase
             
             do {
-                let decoded = try decoder.decode(Object.self, from: data)
-                completion(decoded, nil)
+                let decoded = try decoder.decode(Response<Object>.self, from: data)
+                
+                // more pages of data
+                if let next = decoded.next  {
+                    let nextUrl = URL(string: baseUrl)!.appendingPathComponent(next)
+                    self.request(url: self.getAuthenticatedUrl(url: nextUrl, method: .get)) { (objects: [Object]?, error) in
+                        guard let paginatedObjects = objects else {
+                            completion(objects, error)
+                            return
+                        }
+                        guard error == nil else {
+                            completion(objects, error)
+                            return
+                        }
+                        var newObjects = decoded.data
+                        newObjects.append(contentsOf: paginatedObjects)
+                        completion(newObjects, nil)
+                    }
+                } else {
+                    completion(decoded.data, nil)
+                }
             } catch let parseError {
                 if let json = try? JSONSerialization.jsonObject(with: data, options: []) {
                     print(json)
@@ -61,7 +80,7 @@ extension AppleMusicAPI {
 // MARK: - URL Handling
 
 extension AppleMusicAPI {
-    func getUrlRequest(for paths: [String], method: HTTPMethod = .get, queries: [String:String] = [:]) throws -> URLRequest  {
+    private func getUrlRequest(for paths: [String], method: HTTPMethod = .get, queries: [String:String] = [:]) throws -> URLRequest  {
         var components = URLComponents(string: baseUrl)!
         components.queryItems = queries.map { key, value in
             URLQueryItem(name: key, value: value)
@@ -77,7 +96,7 @@ extension AppleMusicAPI {
         return getAuthenticatedUrl(url: url, method: method)
     }
     
-    func getAuthenticatedUrl(url: URL, method: HTTPMethod) -> URLRequest {
+    private func getAuthenticatedUrl(url: URL, method: HTTPMethod) -> URLRequest {
         guard developerToken != nil, userToken != nil else {
             fatalError("Apple Music manager not initialized, call initialize() before use")
         }
