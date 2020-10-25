@@ -16,7 +16,7 @@ public protocol AppleMusicRelationship: Decodable {
     var next: String? { get set }
 }
 
-public protocol AppleMusicResource: Decodable {
+public protocol AppleMusicResource: Decodable, Identifiable {
     associatedtype Relationships
     associatedtype Attributes
     
