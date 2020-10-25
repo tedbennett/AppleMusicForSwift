@@ -9,7 +9,7 @@ import Foundation
 
 var baseUrl = "https://api.music.apple.com/"
 
-enum Endpoints: String {
+enum Endpoint: String {
     case version = "v1"
     case me = "me"
     case library = "library"
@@ -19,6 +19,10 @@ enum Endpoints: String {
     case tracks = "tracks"
     case songs = "songs"
     case search = "search"
+    
+    static subscript(_ endpoint: Endpoint) -> String {
+        return endpoint.rawValue
+    }
 }
 
 enum HTTPMethod: String {

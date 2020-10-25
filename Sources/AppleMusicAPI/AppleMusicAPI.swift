@@ -109,3 +109,18 @@ extension AppleMusicAPI {
         return request
     }
 }
+
+// MARK: - Playlists
+
+extension AppleMusicAPI {
+    
+    public func getLibraryPlaylists(completion: @escaping ([LibraryPlaylist]?, Error?) -> Void) {
+        do {
+            let url = try getUrlRequest(for: [Endpoint[.version], Endpoint[.me], Endpoint[.library], Endpoint[.playlists]])
+            request(url: url, completion: completion)
+        } catch let error {
+            completion(nil, error)
+        }
+    }
+    
+}
