@@ -132,7 +132,7 @@ extension AppleMusicAPI {
         }
     }
     
-    public func getCatalogPlaylist(id: String, completion: @escaping ([LibraryPlaylist]?, Error?) -> Void) {
+    public func getCatalogPlaylist(id: String, completion: @escaping ([Playlist]?, Error?) -> Void) {
         guard storefront != nil else {
             fatalError("Apple Music manager not initialized, call initialize() before use")
         }
@@ -143,5 +143,39 @@ extension AppleMusicAPI {
             completion(nil, ApiError.invalidUrl)
         }
     }
+}
+
+// MARK: - Albums
+
+extension AppleMusicAPI {
     
+    public func getAllLibraryAlbums(completion: @escaping ([LibraryAlbum]?, Error?) -> Void) {
+        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.me], Endpoint[.library], Endpoint[.albums]])
+        if let url = url {
+            request(url: url, completion: completion)
+        } else {
+            completion(nil, ApiError.invalidUrl)
+        }
+    }
+    
+    public func getLibraryAlbum(id: String, completion: @escaping ([LibraryAlbum]?, Error?) -> Void) {
+        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.me], Endpoint[.library], Endpoint[.albums], id])
+        if let url = url {
+            request(url: url, completion: completion)
+        } else {
+            completion(nil, ApiError.invalidUrl)
+        }
+    }
+    
+    public func getCatalogAlbum(id: String, completion: @escaping ([Album]?, Error?) -> Void) {
+        guard storefront != nil else {
+            fatalError("Apple Music manager not initialized, call initialize() before use")
+        }
+        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.catalog], storefront!, Endpoint[.albums], id])
+        if let url = url {
+            request(url: url, completion: completion)
+        } else {
+            completion(nil, ApiError.invalidUrl)
+        }
+    }
 }
