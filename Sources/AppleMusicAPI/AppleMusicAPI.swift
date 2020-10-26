@@ -24,11 +24,12 @@ extension AppleMusicAPI {
         URLSession.shared.dataTask(with: url) { (data, response, error) in
             
             if let response = response as? HTTPURLResponse {
-                if response.statusCode == 429, let retryDelay = response.value(forHTTPHeaderField: "Retry-After") {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + Double(retryDelay)!) {
-                        self.request(url: url, completion: completion)
-                    }
-                    return
+                if response.statusCode == 429 {
+                    print(response)
+//                    DispatchQueue.main.asyncAfter(deadline: .now() + Double(retryDelay)!) {
+//                        self.request(url: url, completion: completion)
+//                    }
+//                    return
                 }
             }
             
