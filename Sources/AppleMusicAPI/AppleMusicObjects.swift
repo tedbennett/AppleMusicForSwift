@@ -136,7 +136,6 @@ extension AppleMusicAPI {
         }
         
         public struct Attributes: Decodable {
-            public var albumName: String
             public var artistName: String
             public var artwork: Artwork?
             public var contentRating: String?
