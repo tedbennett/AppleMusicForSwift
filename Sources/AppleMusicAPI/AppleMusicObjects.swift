@@ -249,7 +249,7 @@ extension AppleMusicAPI {
         public var id: String
         
         public struct Relationships: Decodable {
-            public var tracks: SongRelationship
+            public var tracks: LibrarySongRelationship
         }
         
         public struct Attributes: Decodable {
