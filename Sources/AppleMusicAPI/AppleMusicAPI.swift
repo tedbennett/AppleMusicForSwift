@@ -341,6 +341,19 @@ extension AppleMusicAPI {
             completion(nil, ApiError.invalidUrl)
         }
     }
+    
+    public func getLibrarySongIsrcId(song: LibrarySong, completion: @escaping (String?, Error?) -> Void) {
+        if let attributes = song.attributes {
+            let terms = "\(attributes.name) \(attributes.artistName)"
+            searchCatalogSongs(term: terms) { songs, error in
+                if let songs = songs {
+                    completion(songs.first?.attributes?.isrc, nil)
+                } else {
+                    completion(nil, error)
+                }
+            }
+        }
+    }
 }
 
 // MARK: - Search
