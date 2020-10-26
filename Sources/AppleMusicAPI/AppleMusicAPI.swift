@@ -25,8 +25,8 @@ extension AppleMusicAPI {
             
             if let response = response as? HTTPURLResponse {
                 if response.statusCode == 429 {
-                    let retryDelay = 1 // Apple API doesn't provide a retry after, so we have to guess
-                    DispatchQueue.main.asyncAfter(deadline: .now() + Double(retryDelay)!) {
+                    let retryDelay = 1.0 // Apple API doesn't provide a retry after, so we have to guess
+                    DispatchQueue.main.asyncAfter(deadline: .now() + retryDelay) {
                         self.request(url: url, completion: completion)
                     }
                     return
