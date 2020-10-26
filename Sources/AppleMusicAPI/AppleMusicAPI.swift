@@ -222,7 +222,7 @@ extension AppleMusicAPI {
     }
     
     public func addTracksToLibraryPlaylist(id: String, songs: [Song], librarySongs: [LibrarySong], completion: @escaping (Bool, Error?) -> Void) {
-        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.me], Endpoint[.library], Endpoint[.playlists], id], method: .post)
+        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.me], Endpoint[.library], Endpoint[.playlists], id, Endpoint[.tracks]], method: .post)
         
         let tracks = songs.map { LibraryPlaylistRequestTrack(id: $0.id, type: "songs") } + librarySongs.map { LibraryPlaylistRequestTrack(id: $0.id, type: "library-songs") }
         let body = LibraryPlaylistTracksRequest(data: tracks)
