@@ -59,6 +59,30 @@ extension AppleMusicAPI {
         }.resume()
     }
     
+    private func requestWithNoResponseBody(url: URLRequest, completion: @escaping (Bool, Error?) -> Void) {
+        URLSession.shared.dataTask(with: url) { (data, response, error) in
+            
+            if let response = response as? HTTPURLResponse {
+                switch response.statusCode {
+                    case 429:
+                        if let retryDelay = response.value(forHTTPHeaderField: "Retry-After") {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + Double(retryDelay)!) {
+                                self.requestWithNoResponseBody(url: url, completion: completion)
+                            }
+                            return
+                        }
+                    case 204:
+                        completion(true, nil)
+                    default:
+                        completion(false, error)
+                }
+                
+            } else {
+                completion(false, error)
+            }
+        }
+    }
+    
     private func arrayRequest<Object: AppleMusicResource>(url: URLRequest, completion: @escaping ([Object]?, Error?) -> Void) {
         let arrayCompletion: (Response<Object>?, Error?) -> Void = { response, error in
             if let responseObjects = response?.data {
@@ -118,6 +142,11 @@ extension AppleMusicAPI {
         request.httpMethod = method.rawValue
         return request
     }
+    
+    private func getRequestBody<Body: Codable>(body: Body) -> Data? {
+        let encoder = JSONEncoder()
+        return try? encoder.encode(body)
+    }
 }
 
 // MARK: - Playlists
@@ -151,6 +180,39 @@ extension AppleMusicAPI {
             arrayRequest(url: url, completion: completion)
         } else {
             completion(nil, ApiError.invalidUrl)
+        }
+    }
+    
+    public func createLibraryPlaylist(name: String, description: String?, songs: [Song], librarySongs: [LibrarySong], completion: @escaping ([Playlist]?, Error?) -> Void) {
+        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.me], Endpoint[.library], Endpoint[.playlists]], method: .post)
+        
+        let tracks = songs.map { LibraryPlaylistRequestTrack(id: $0.id, type: "songs") } + librarySongs.map { LibraryPlaylistRequestTrack(id: $0.id, type: "library-songs") }
+        let body = LibraryPlaylistRequest(name: name, description: description, tracks: tracks)
+        
+        
+        if var url = url {
+            if let data = getRequestBody(body: body) {
+                url.httpBody = data
+            }
+            arrayRequest(url: url, completion: completion)
+        } else {
+            completion(nil, ApiError.invalidUrl)
+        }
+    }
+    
+    public func addTracksToLibraryPlaylist(id: String, songs: [Song], librarySongs: [LibrarySong], completion: @escaping (Bool, Error?) -> Void) {
+        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.me], Endpoint[.library], Endpoint[.playlists], id], method: .post)
+        
+        let tracks = songs.map { LibraryPlaylistRequestTrack(id: $0.id, type: "songs") } + librarySongs.map { LibraryPlaylistRequestTrack(id: $0.id, type: "library-songs") }
+        let body = LibraryPlaylistTracksRequest(data: tracks)
+        
+        if var url = url {
+            if let data = getRequestBody(body: body) {
+                url.httpBody = data
+            }
+            requestWithNoResponseBody(url: url, completion: completion)
+        } else {
+            completion(false, ApiError.invalidUrl)
         }
     }
 }

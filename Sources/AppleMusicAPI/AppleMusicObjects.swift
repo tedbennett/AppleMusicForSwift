@@ -329,4 +329,38 @@ extension AppleMusicAPI {
         public var href: URL?
         public var next: String?
     }
+    
+    struct LibraryPlaylistRequest: Codable {
+        var attributes: Attributes
+        var relationships: Relationships
+        
+        struct Attributes: Codable {
+            var name: String
+            var description: String?
+        }
+        
+        struct Relationships: Codable {
+            var tracks: [LibraryPlaylistRequestTrack]
+        }
+        
+        init(name: String, description: String?, tracks: [LibraryPlaylistRequestTrack]) {
+            self.attributes = Attributes(name: name, description: description)
+            self.relationships = Relationships(tracks: tracks)
+        }
+    }
+            
+    
+    struct LibraryPlaylistRequestTrack: Codable {
+        var id: String
+        var type: String
+        
+        enum TrackType: String {
+            case songs = "songs"
+            case librarySongs = "library-songs"
+        }
+    }
+    
+    struct LibraryPlaylistTracksRequest: Codable {
+        var data: [LibraryPlaylistRequestTrack]
+    }
 }
