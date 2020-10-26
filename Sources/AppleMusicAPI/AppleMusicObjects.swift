@@ -340,7 +340,11 @@ extension AppleMusicAPI {
         }
         
         struct Relationships: Codable {
-            var tracks: [LibraryPlaylistRequestTrack]
+            var tracks: LibraryPlaylistTracksRequest
+            
+            init(tracks: [LibraryPlaylistRequestTrack]) {
+                self.tracks = LibraryPlaylistTracksRequest(data: tracks)
+            }
         }
         
         init(name: String, description: String?, tracks: [LibraryPlaylistRequestTrack]) {
@@ -348,7 +352,10 @@ extension AppleMusicAPI {
             self.relationships = Relationships(tracks: tracks)
         }
     }
-            
+      
+    struct LibraryPlaylistTracksRequest: Codable {
+        var data: [LibraryPlaylistRequestTrack]
+    }
     
     struct LibraryPlaylistRequestTrack: Codable {
         var id: String
@@ -358,9 +365,5 @@ extension AppleMusicAPI {
             case songs = "songs"
             case librarySongs = "library-songs"
         }
-    }
-    
-    struct LibraryPlaylistTracksRequest: Codable {
-        var data: [LibraryPlaylistRequestTrack]
     }
 }
