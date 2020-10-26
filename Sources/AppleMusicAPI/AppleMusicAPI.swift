@@ -80,7 +80,7 @@ extension AppleMusicAPI {
             } else {
                 completion(false, error)
             }
-        }
+        }.resume()
     }
     
     private func arrayRequest<Object: AppleMusicResource>(url: URLRequest, completion: @escaping ([Object]?, Error?) -> Void) {
