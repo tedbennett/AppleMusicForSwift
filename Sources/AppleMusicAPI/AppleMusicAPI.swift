@@ -263,13 +263,13 @@ extension AppleMusicAPI {
 // MARK: - Search
 
 extension AppleMusicAPI {
-    public func searchCatalog(term: String, searchTypes: [String] = [], completion: @escaping ([Song]?, [Album]?, [Artist]?, [Playlist]?, Error?) -> Void) {
+    public func searchCatalog(term: String, searchTypes: [SearchType] = [], completion: @escaping ([Song]?, [Album]?, [Artist]?, [Playlist]?, Error?) -> Void) {
         guard storefront != nil else {
             fatalError("Apple Music manager not initialized, call initialize() before use")
         }
         var queries = ["term": term.replacingOccurrences(of: " ", with: "+")]
         if !searchTypes.isEmpty {
-            queries["types"] = searchTypes.joined(separator: ",")
+            queries["types"] = searchTypes.map { $0.rawValue }.joined(separator: ",")
         }
         let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.catalog], storefront!, Endpoint[.search]], queries: queries)
         
@@ -291,37 +291,37 @@ extension AppleMusicAPI {
         let songCompletion: ([Song]?, [Album]?, [Artist]?, [Playlist]?, Error?) -> Void = { songs, albums, artists, playlists, error in
             completion(songs, error)
         }
-        searchCatalog(term: term, searchTypes: [Endpoint[.songs]], completion: songCompletion)
+        searchCatalog(term: term, searchTypes: [.songs], completion: songCompletion)
     }
         
     public func searchCatalogAlbums(term: String, completion: @escaping ([Album]?, Error?) -> Void) {
         let albumCompletion: ([Song]?, [Album]?, [Artist]?, [Playlist]?, Error?) -> Void = { songs, albums, artists, playlists, error in
             completion(albums, error)
         }
-        searchCatalog(term: term, searchTypes: [Endpoint[.albums]], completion: albumCompletion)
+        searchCatalog(term: term, searchTypes: [.albums], completion: albumCompletion)
     }
     
     public func searchCatalogArtists(term: String, completion: @escaping ([Artist]?, Error?) -> Void) {
         let artistCompletion: ([Song]?, [Album]?, [Artist]?, [Playlist]?, Error?) -> Void = { songs, albums, artists, playlists, error in
             completion(artists, error)
         }
-        searchCatalog(term: term, searchTypes: [Endpoint[.artists]], completion: artistCompletion)
+        searchCatalog(term: term, searchTypes: [.artists], completion: artistCompletion)
     }
     
     public func searchCatalogPlaylists(term: String, completion: @escaping ([Playlist]?, Error?) -> Void) {
         let playlistCompletion: ([Song]?, [Album]?, [Artist]?, [Playlist]?, Error?) -> Void = { songs, albums, artists, playlists, error in
             completion(playlists, error)
         }
-        searchCatalog(term: term, searchTypes: [Endpoint[.playlists]], completion: playlistCompletion)
+        searchCatalog(term: term, searchTypes: [.playlists], completion: playlistCompletion)
     }
     
-    public func searchLibrary(term: String, searchTypes: [String] = [], completion: @escaping ([LibrarySong]?, [LibraryAlbum]?, [LibraryArtist]?, [LibraryPlaylist]?, Error?) -> Void) {
+    public func searchLibrary(term: String, searchTypes: [SearchType] = [], completion: @escaping ([LibrarySong]?, [LibraryAlbum]?, [LibraryArtist]?, [LibraryPlaylist]?, Error?) -> Void) {
         guard storefront != nil else {
             fatalError("Apple Music manager not initialized, call initialize() before use")
         }
         var queries = ["term": term.replacingOccurrences(of: " ", with: "+")]
         if !searchTypes.isEmpty {
-            queries["types"] = searchTypes.joined(separator: ",")
+            queries["types"] = searchTypes.map { $0.rawValue }.joined(separator: ",")
         }
         let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.me], Endpoint[.library], Endpoint[.search]], queries: queries)
         
@@ -343,27 +343,27 @@ extension AppleMusicAPI {
         let songCompletion: ([LibrarySong]?, [LibraryAlbum]?, [LibraryArtist]?, [LibraryPlaylist]?, Error?) -> Void = { songs, albums, artists, playlists, error in
             completion(songs, error)
         }
-        searchLibrary(term: term, searchTypes: [Endpoint[.songs]], completion: songCompletion)
+        searchLibrary(term: term, searchTypes: [.librarySongs], completion: songCompletion)
     }
     
     public func searchLibraryAlbums(term: String, completion: @escaping ([LibraryAlbum]?, Error?) -> Void) {
         let albumCompletion: ([LibrarySong]?, [LibraryAlbum]?, [LibraryArtist]?, [LibraryPlaylist]?, Error?) -> Void = { songs, albums, artists, playlists, error in
             completion(albums, error)
         }
-        searchLibrary(term: term, searchTypes: [Endpoint[.albums]], completion: albumCompletion)
+        searchLibrary(term: term, searchTypes: [.libraryAlbums], completion: albumCompletion)
     }
     
     public func searchLibraryArtists(term: String, completion: @escaping ([LibraryArtist]?, Error?) -> Void) {
         let artistCompletion: ([LibrarySong]?, [LibraryAlbum]?, [LibraryArtist]?, [LibraryPlaylist]?, Error?) -> Void = { songs, albums, artists, playlists, error in
             completion(artists, error)
         }
-        searchLibrary(term: term, searchTypes: [Endpoint[.artists]], completion: artistCompletion)
+        searchLibrary(term: term, searchTypes: [.libraryArtists], completion: artistCompletion)
     }
     
     public func searchLibraryPlaylists(term: String, completion: @escaping ([LibraryPlaylist]?, Error?) -> Void) {
         let playlistCompletion: ([LibrarySong]?, [LibraryAlbum]?, [LibraryArtist]?, [LibraryPlaylist]?, Error?) -> Void = { songs, albums, artists, playlists, error in
             completion(playlists, error)
         }
-        searchLibrary(term: term, searchTypes: [Endpoint[.playlists]], completion: playlistCompletion)
+        searchLibrary(term: term, searchTypes: [.libraryPlaylists], completion: playlistCompletion)
     }
 }

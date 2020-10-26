@@ -40,3 +40,14 @@ enum ApiError: Error {
     case expiredAccessToken
     case tooManyRequests
 }
+
+public enum SearchType: String {
+    case songs = "songs"
+    case artists = "artists"
+    case albums = "albums"
+    case playlists = "playlists"
+    case librarySongs = "library-songs"
+    case libraryArtists = "library-artists"
+    case libraryAlbums = "library-albums"
+    case libraryPlaylists = "library-playlists"
+}
