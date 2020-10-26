@@ -53,10 +53,17 @@ extension AppleMusicAPI {
         var results: SearchResults
         
         struct SearchResults: Decodable {
-            var albums: Response<LibraryAlbum>?
-            var artists: Response<LibraryArtist>?
-            var playlists: Response<LibraryPlaylist>?
-            var songs: Response<LibrarySong>?
+            var libraryAlbums: Response<LibraryAlbum>?
+            var libraryArtists: Response<LibraryArtist>?
+            var libraryPlaylists: Response<LibraryPlaylist>?
+            var librarySongs: Response<LibrarySong>?
+            
+            enum CodingKeys: String, CodingKey {
+                case libraryAlbums = "library-albums"
+                case libraryArtists = "library-artists"
+                case libraryPlaylists = "library-playlists"
+                case librarySongs = "library-songs"
+            }
         }
     }
     

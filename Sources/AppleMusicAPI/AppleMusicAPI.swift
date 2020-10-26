@@ -328,7 +328,7 @@ extension AppleMusicAPI {
         if let url = url {
             let searchCompletion: (LibrarySearchResponse?, Error?) -> Void = { response, error in
                 if let results = response?.results {
-                    completion(results.songs?.data, results.albums?.data, results.artists?.data, results.playlists?.data, error)
+                    completion(results.librarySongs?.data, results.libraryAlbums?.data, results.libraryArtists?.data, results.libraryPlaylists?.data, error)
                 } else {
                     completion(nil, nil, nil, nil, error)
                 }
