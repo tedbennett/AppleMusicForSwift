@@ -163,7 +163,7 @@ extension AppleMusicAPI {
     }
     
     public func getLibraryPlaylist(id: String, completion: @escaping ([LibraryPlaylist]?, Error?) -> Void) {
-        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.me], Endpoint[.library], Endpoint[.playlists], id])
+        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.me], Endpoint[.library], Endpoint[.playlists], id, Endpoint[.tracks]])
         if let url = url {
             arrayRequest(url: url, completion: completion)
         } else {
