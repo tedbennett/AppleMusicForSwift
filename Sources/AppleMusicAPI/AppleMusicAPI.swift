@@ -63,8 +63,7 @@ extension AppleMusicAPI {
         let arrayCompletion: (Response<Object>?, Error?) -> Void = { response, error in
             if let responseObjects = response?.data {
             
-                if let next = response?.next  {
-                    let nextUrl = URL(string: baseUrl)!.appendingPathComponent(next)
+                if let next = response?.next, let nextUrl = URL(string: baseUrl + next)  {
                     self.arrayRequest(url: self.getAuthenticatedUrl(url: nextUrl, method: .get)) { (objects: [Object]?, error) in
                         guard let paginatedObjects = objects else {
                             completion(objects, error)
