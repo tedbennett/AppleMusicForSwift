@@ -74,6 +74,9 @@ extension AppleMusicAPI {
                     case 204:
                         completion(true, nil)
                     default:
+                        if let data = data, let json = try? JSONSerialization.jsonObject(with: data, options: []) {
+                            print(json)
+                        }
                         completion(false, error)
                 }
                 
