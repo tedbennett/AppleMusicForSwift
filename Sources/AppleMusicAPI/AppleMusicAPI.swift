@@ -54,6 +54,9 @@ extension AppleMusicAPI {
                 if let json = try? JSONSerialization.jsonObject(with: data, options: []) {
                     print(json)
                 }
+                if let response = response as? HTTPURLResponse {
+                    print(response.statusCode)
+                }
                 completion(nil, parseError)
             }
         }.resume()
