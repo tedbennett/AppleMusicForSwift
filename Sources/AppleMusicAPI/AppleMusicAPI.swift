@@ -19,7 +19,7 @@ public class AppleMusicAPI {
 // MARK: - Requests
 
 extension AppleMusicAPI {
-    private func request<Object: AppleMusicResource>(url: URLRequest, completion: @escaping ([Object]?, Error?) -> Void) {
+    private func request<ResponseType: AppleMusicResponse>(url: URLRequest, completion: @escaping (ResponseType?, Error?) -> Void) {
         
         URLSession.shared.dataTask(with: url) { (data, response, error) in
             
@@ -46,12 +46,26 @@ extension AppleMusicAPI {
             decoder.keyDecodingStrategy = .convertFromSnakeCase
             
             do {
-                let decoded = try decoder.decode(Response<Object>.self, from: data)
+                let decoded = try decoder.decode(ResponseType.self, from: data)
                 
                 // more pages of data
-                if let next = decoded.next  {
+                completion(decoded, nil)
+            } catch let parseError {
+                if let json = try? JSONSerialization.jsonObject(with: data, options: []) {
+                    print(json)
+                }
+                completion(nil, parseError)
+            }
+        }.resume()
+    }
+    
+    private func arrayRequest<Object: AppleMusicResource>(url: URLRequest, completion: @escaping ([Object]?, Error?) -> Void) {
+        let arrayCompletion: (Response<Object>?, Error?) -> Void = { response, error in
+            if let responseObjects = response?.data {
+            
+                if let next = response?.next  {
                     let nextUrl = URL(string: baseUrl)!.appendingPathComponent(next)
-                    self.request(url: self.getAuthenticatedUrl(url: nextUrl, method: .get)) { (objects: [Object]?, error) in
+                    self.arrayRequest(url: self.getAuthenticatedUrl(url: nextUrl, method: .get)) { (objects: [Object]?, error) in
                         guard let paginatedObjects = objects else {
                             completion(objects, error)
                             return
@@ -60,20 +74,17 @@ extension AppleMusicAPI {
                             completion(objects, error)
                             return
                         }
-                        var newObjects = decoded.data
-                        newObjects.append(contentsOf: paginatedObjects)
+                        let newObjects = responseObjects + paginatedObjects
                         completion(newObjects, nil)
                     }
                 } else {
-                    completion(decoded.data, nil)
+                    completion(responseObjects, error)
                 }
-            } catch let parseError {
-                if let json = try? JSONSerialization.jsonObject(with: data, options: []) {
-                    print(json)
-                }
-                completion(nil, parseError)
+            } else {
+                completion(nil, error)
             }
-        }.resume()
+        }
+        request(url: url, completion: arrayCompletion)
     }
 }
 
@@ -117,7 +128,7 @@ extension AppleMusicAPI {
     public func getAllLibraryPlaylists(completion: @escaping ([LibraryPlaylist]?, Error?) -> Void) {
         let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.me], Endpoint[.library], Endpoint[.playlists]])
         if let url = url {
-            request(url: url, completion: completion)
+            arrayRequest(url: url, completion: completion)
         } else {
             completion(nil, ApiError.invalidUrl)
         }
@@ -126,7 +137,7 @@ extension AppleMusicAPI {
     public func getLibraryPlaylist(id: String, completion: @escaping ([LibraryPlaylist]?, Error?) -> Void) {
         let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.me], Endpoint[.library], Endpoint[.playlists], id])
         if let url = url {
-            request(url: url, completion: completion)
+            arrayRequest(url: url, completion: completion)
         } else {
             completion(nil, ApiError.invalidUrl)
         }
@@ -138,7 +149,7 @@ extension AppleMusicAPI {
         }
         let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.catalog], storefront!, Endpoint[.playlists], id])
         if let url = url {
-            request(url: url, completion: completion)
+            arrayRequest(url: url, completion: completion)
         } else {
             completion(nil, ApiError.invalidUrl)
         }
@@ -152,7 +163,7 @@ extension AppleMusicAPI {
     public func getAllLibraryAlbums(completion: @escaping ([LibraryAlbum]?, Error?) -> Void) {
         let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.me], Endpoint[.library], Endpoint[.albums]])
         if let url = url {
-            request(url: url, completion: completion)
+            arrayRequest(url: url, completion: completion)
         } else {
             completion(nil, ApiError.invalidUrl)
         }
@@ -161,7 +172,7 @@ extension AppleMusicAPI {
     public func getLibraryAlbum(id: String, completion: @escaping ([LibraryAlbum]?, Error?) -> Void) {
         let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.me], Endpoint[.library], Endpoint[.albums], id])
         if let url = url {
-            request(url: url, completion: completion)
+            arrayRequest(url: url, completion: completion)
         } else {
             completion(nil, ApiError.invalidUrl)
         }
@@ -173,7 +184,7 @@ extension AppleMusicAPI {
         }
         let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.catalog], storefront!, Endpoint[.albums], id])
         if let url = url {
-            request(url: url, completion: completion)
+            arrayRequest(url: url, completion: completion)
         } else {
             completion(nil, ApiError.invalidUrl)
         }
@@ -187,7 +198,7 @@ extension AppleMusicAPI {
     public func getAllLibraryArtists(completion: @escaping ([LibraryArtist]?, Error?) -> Void) {
         let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.me], Endpoint[.library], Endpoint[.artists]])
         if let url = url {
-            request(url: url, completion: completion)
+            arrayRequest(url: url, completion: completion)
         } else {
             completion(nil, ApiError.invalidUrl)
         }
@@ -196,7 +207,7 @@ extension AppleMusicAPI {
     public func getLibraryArtist(id: String, completion: @escaping ([LibraryArtist]?, Error?) -> Void) {
         let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.me], Endpoint[.library], Endpoint[.artists], id])
         if let url = url {
-            request(url: url, completion: completion)
+            arrayRequest(url: url, completion: completion)
         } else {
             completion(nil, ApiError.invalidUrl)
         }
@@ -208,7 +219,7 @@ extension AppleMusicAPI {
         }
         let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.catalog], storefront!, Endpoint[.artists], id])
         if let url = url {
-            request(url: url, completion: completion)
+            arrayRequest(url: url, completion: completion)
         } else {
             completion(nil, ApiError.invalidUrl)
         }
@@ -222,7 +233,7 @@ extension AppleMusicAPI {
     public func getAllLibrarySongs(completion: @escaping ([LibrarySong]?, Error?) -> Void) {
         let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.me], Endpoint[.library], Endpoint[.songs]])
         if let url = url {
-            request(url: url, completion: completion)
+            arrayRequest(url: url, completion: completion)
         } else {
             completion(nil, ApiError.invalidUrl)
         }
@@ -231,7 +242,7 @@ extension AppleMusicAPI {
     public func getLibrarySong(id: String, completion: @escaping ([LibrarySong]?, Error?) -> Void) {
         let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.me], Endpoint[.library], Endpoint[.songs], id])
         if let url = url {
-            request(url: url, completion: completion)
+            arrayRequest(url: url, completion: completion)
         } else {
             completion(nil, ApiError.invalidUrl)
         }
@@ -243,9 +254,34 @@ extension AppleMusicAPI {
         }
         let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.catalog], storefront!, Endpoint[.songs], id])
         if let url = url {
-            request(url: url, completion: completion)
+            arrayRequest(url: url, completion: completion)
         } else {
             completion(nil, ApiError.invalidUrl)
+        }
+    }
+}
+
+// MARK: - Search
+
+extension AppleMusicAPI {
+    public func searchCatalog(term: String, completion: @escaping ([Song]?, [Album]?, [Artist]?, [Playlist]?, Error?) -> Void) {
+        guard storefront != nil else {
+            fatalError("Apple Music manager not initialized, call initialize() before use")
+        }
+        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.catalog], storefront!, Endpoint[.search]], queries: ["term": term.replacingOccurrences(of: " ", with: "+")])
+        
+        if let url = url {
+            let searchCompletion: (SearchResponse?, Error?) -> Void = { response, error in
+                if let results = response?.results {
+                    completion(results.songs?.data, results.albums?.data, results.artists?.data, results.playlists?.data, error)
+                } else {
+                    completion(nil, nil, nil, nil, error)
+                }
+            }
+            request(url: url, completion: searchCompletion)
+            
+        } else {
+            completion(nil, nil, nil, nil, ApiError.invalidUrl)
         }
     }
 }

@@ -26,14 +26,19 @@ public protocol AppleMusicResource: Decodable, Identifiable {
     var href: URL? { get set }
     var id: String { get set }
 }
+
+public protocol AppleMusicResponse: Decodable {
+
+}
+
 extension AppleMusicAPI {
     
-    struct Response<Object: AppleMusicResource>: Decodable {
+    struct Response<Object: AppleMusicResource>: AppleMusicResponse {
         var data: [Object]
         var next: String?
     }
     
-    struct SearchResponse: Decodable {
+    struct SearchResponse: AppleMusicResponse {
         var results: SearchResults
         
         struct SearchResults: Decodable {
@@ -42,8 +47,19 @@ extension AppleMusicAPI {
             var playlists: Response<Playlist>?
             var songs: Response<Song>?
         }
-        
     }
+    
+    struct LibrarySearchResponse: AppleMusicResponse {
+        var results: SearchResults
+        
+        struct SearchResults: Decodable {
+            var albums: Response<LibraryAlbum>?
+            var artists: Response<LibraryArtist>?
+            var playlists: Response<LibraryPlaylist>?
+            var songs: Response<LibrarySong>?
+        }
+    }
+    
     public struct Song: AppleMusicResource {
         
         public var relationships: Relationships?
