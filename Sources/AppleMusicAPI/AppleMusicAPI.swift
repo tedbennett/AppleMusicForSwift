@@ -346,6 +346,25 @@ extension AppleMusicAPI {
         }
     }
     
+    public func getCatalogSongByIsrcId(isrcId: String, completion: @escaping (Song?, Error?) -> Void) {
+        guard storefront != nil else {
+            fatalError("Apple Music manager not initialized, call initialize() before use")
+        }
+        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.catalog], storefront!, Endpoint[.songs]], queries: ["filter[isrc]": isrcId])
+        if let url = url {
+            let wrappedCompletion: ([Song]?, Error?) -> Void = {songs, error in
+                if let songs = songs {
+                    completion(songs.first, nil)
+                } else {
+                    completion(nil, error)
+                }
+            }
+            arrayRequest(url: url, completion: wrappedCompletion)
+        } else {
+            completion(nil, ApiError.invalidUrl)
+        }
+    }
+    
     public func getLibrarySongIsrcId(song: LibrarySong, completion: @escaping (String?, Error?) -> Void) {
         if let attributes = song.attributes {
             let terms = "\(attributes.name) \(attributes.artistName)"
