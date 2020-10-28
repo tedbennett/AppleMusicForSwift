@@ -67,6 +67,24 @@ extension AppleMusicAPI {
         }
     }
     
+    struct Storefront: AppleMusicResource {
+        var href: URL?
+        var id: String
+        var type: String
+        var attributes: Attributes?
+        var relationships: Relationships?
+        
+        struct Attributes: Decodable {
+            var defaultLanguageTag: String
+            var name: String
+            var supportedLanguageTags: [String]
+        }
+        
+        struct Relationships: Decodable {
+            
+        }
+    }
+    
     public struct Song: AppleMusicResource {
         
         public var relationships: Relationships?

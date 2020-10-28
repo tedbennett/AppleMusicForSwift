@@ -9,10 +9,17 @@ public class AppleMusicAPI {
     private var userToken: String?
     private var storefront: String?
     
-    public func initialize(developerToken: String, userToken: String, storefront: String) {
+    public func initialize(developerToken: String, userToken: String) {
         self.developerToken = developerToken
         self.userToken = userToken
-        self.storefront = storefront
+        getUserStorefront { storefront, error in
+            guard let id = storefront?.first?.id else {
+                print(error.debugDescription)
+                self.storefront = "gb"
+                return
+            }
+            self.storefront = id
+        }
     }
 }
 
@@ -154,6 +161,21 @@ extension AppleMusicAPI {
         let encoder = JSONEncoder()
         return try? encoder.encode(body)
     }
+}
+
+// MARK: - Storefront
+
+extension AppleMusicAPI {
+    
+    func getUserStorefront(completion: @escaping ([Storefront]?, Error?) -> Void) {
+        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.me], Endpoint[.storefront]])
+        if let url = url {
+            arrayRequest(url: url, completion: completion)
+        } else {
+            completion(nil, ApiError.invalidUrl)
+        }
+    }
+    
 }
 
 // MARK: - Playlists
