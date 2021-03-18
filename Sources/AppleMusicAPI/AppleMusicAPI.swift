@@ -508,3 +508,40 @@ extension AppleMusicAPI {
         searchLibrary(term: term, searchTypes: [.libraryPlaylists], completion: playlistCompletion)
     }
 }
+
+// MARK: Library
+
+extension AppleMusicAPI {
+    func addResourceToLibrary(songs: [String], albums: [String], playlists: [String], completion: @escaping (Bool, Error?) -> Void) {
+        
+        let queries = [
+            "ids[songs]": songs.joined(separator: ","),
+            "ids[albums]": albums.joined(separator: ","),
+            "ids[playlists]": playlists.joined(separator: ",")
+        ]
+        
+        
+        guard let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.me], Endpoint[.library]], method: .post, queries: queries) else {
+            completion(false, ApiError.invalidUrl)
+            return
+        }
+        
+        requestWithNoResponseBody(url: url, completion: completion)
+    }
+    
+    func addResourceToLibrary(songs: [Song], albums: [Album], playlists: [Playlist], completion: @escaping (Bool, Error?) -> Void) {
+        addResourceToLibrary(songs: songs.map { $0.id }, albums: albums.map { $0.id }, playlists: playlists.map { $0.id }, completion: completion)
+    }
+    
+    public func addSongsToLibrary(songs: [String], completion: @escaping (Bool, Error?) -> Void) {
+        addResourceToLibrary(songs: songs, albums: [], playlists: [], completion: completion)
+    }
+    
+    public func addAlbumsToLibrary(albums: [String], completion: @escaping (Bool, Error?) -> Void) {
+        addResourceToLibrary(songs: [], albums: albums, playlists: [], completion: completion)
+    }
+    
+    public func addPlaylistsToLibrary(playlists: [String], completion: @escaping (Bool, Error?) -> Void) {
+        addResourceToLibrary(songs: [], albums: [], playlists: playlists, completion: completion)
+    }
+}

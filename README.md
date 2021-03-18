@@ -48,7 +48,7 @@ You'll need to be part of the Apple Developer program to access this API. At the
 
 API Endpoint | Implemented? | Notes
 --- | :---: | ---:
-Add a resource to a Library | ❌ |
+Add a resource to a Library | ✅ |
 Get a Catalog song | ✅ |
 Get a Catalog song's artists | ❌ |
 Get multiple Catalog songs | ❌ |
