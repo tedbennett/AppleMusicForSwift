@@ -82,7 +82,7 @@ extension AppleMusicAPI {
                             }
                             return
                         }
-                    case 204:
+                    case 204, 202, 200:
                         completion(true, nil)
                     default:
                         if let data = data, let json = try? JSONSerialization.jsonObject(with: data, options: []) {
