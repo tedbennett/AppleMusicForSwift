@@ -157,7 +157,7 @@ extension AppleMusicAPI {
         
         public struct Relationships: Decodable {
             public var tracks: SongRelationship
-            public var artist: ArtistRelationship
+            public var artists: ArtistRelationship
         }
         
         public struct Attributes: Decodable {
@@ -188,7 +188,7 @@ extension AppleMusicAPI {
         
         public struct Relationships: Decodable {
             public var tracks: LibrarySongRelationship
-            public var artist: LibraryArtistRelationship
+            public var artists: LibraryArtistRelationship
         }
         
         public struct Attributes: Decodable {
