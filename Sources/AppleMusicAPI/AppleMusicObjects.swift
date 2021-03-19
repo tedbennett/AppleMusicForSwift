@@ -31,10 +31,35 @@ public protocol AppleMusicResponse: Decodable {
 
 }
 
+enum Throwable<T: Decodable>: Decodable {
+    case success(T)
+    case failure(Error)
+    
+    init(from decoder: Decoder) throws {
+        do {
+            let decoded = try T(from: decoder)
+            self = .success(decoded)
+        } catch let error {
+            self = .failure(error)
+        }
+    }
+}
+
+extension Throwable {
+    var value: T? {
+        switch self {
+            case .failure(_):
+                return nil
+            case .success(let value):
+                return value
+        }
+    }
+}
+
 extension AppleMusicAPI {
     
     struct Response<Object: AppleMusicResource>: AppleMusicResponse {
-        var data: [Object]
+        var data: [Throwable<Object>]
         var next: String?
     }
     

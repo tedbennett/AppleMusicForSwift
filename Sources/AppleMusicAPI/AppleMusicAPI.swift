@@ -111,11 +111,11 @@ extension AppleMusicAPI {
                             completion(objects, error)
                             return
                         }
-                        let newObjects = responseObjects + paginatedObjects
+                        let newObjects = responseObjects.compactMap { $0.value } + paginatedObjects
                         completion(newObjects, nil)
                     }
                 } else {
-                    completion(responseObjects, error)
+                    completion(responseObjects.compactMap { $0.value }, error)
                 }
             } else {
                 completion(nil, error)
@@ -417,7 +417,7 @@ extension AppleMusicAPI {
         if let url = url {
             let searchCompletion: (SearchResponse?, Error?) -> Void = { response, error in
                 if let results = response?.results {
-                    completion(results.songs?.data, results.albums?.data, results.artists?.data, results.playlists?.data, error)
+                    completion(results.songs?.data.compactMap { $0.value }, results.albums?.data.compactMap { $0.value }, results.artists?.data.compactMap { $0.value }, results.playlists?.data.compactMap { $0.value }, error)
                 } else {
                     completion(nil, nil, nil, nil, error)
                 }
@@ -469,7 +469,7 @@ extension AppleMusicAPI {
         if let url = url {
             let searchCompletion: (LibrarySearchResponse?, Error?) -> Void = { response, error in
                 if let results = response?.results {
-                    completion(results.librarySongs?.data, results.libraryAlbums?.data, results.libraryArtists?.data, results.libraryPlaylists?.data, error)
+                    completion(results.librarySongs?.data.compactMap { $0.value }, results.libraryAlbums?.data.compactMap { $0.value }, results.libraryArtists?.data.compactMap { $0.value }, results.libraryPlaylists?.data.compactMap { $0.value }, error)
                 } else {
                     completion(nil, nil, nil, nil, error)
                 }
