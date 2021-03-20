@@ -21,6 +21,19 @@ public class AppleMusicAPI {
             self.storefront = id
         }
     }
+    
+    public func initialize(developerToken: String) {
+        self.developerToken = developerToken
+        storefront = "gb"
+    }
+    
+    public func isInialized() -> Bool {
+        return developerToken != nil
+    }
+    
+    public func hasUserAccess() -> Bool {
+        return developerToken != nil && userToken != nil
+    }
 }
 
 // MARK: - Requests
@@ -97,12 +110,12 @@ extension AppleMusicAPI {
         }.resume()
     }
     
-    private func arrayRequest<Object: AppleMusicResource>(url: URLRequest, completion: @escaping ([Object]?, Error?) -> Void) {
+    private func arrayRequest<Object: AppleMusicResource>(url: URLRequest, requiresUserAccess: Bool = true, completion: @escaping ([Object]?, Error?) -> Void) {
         let arrayCompletion: (Response<Object>?, Error?) -> Void = { response, error in
             if let responseObjects = response?.data {
             
                 if let next = response?.next, let nextUrl = URL(string: baseUrl + next)  {
-                    self.arrayRequest(url: self.getAuthenticatedUrl(url: nextUrl, method: .get)) { (objects: [Object]?, error) in
+                    self.arrayRequest(url: self.getAuthenticatedUrl(url: nextUrl, method: .get, requiresUserAccess: requiresUserAccess)) { (objects: [Object]?, error) in
                         guard let paginatedObjects = objects else {
                             completion(objects, error)
                             return
@@ -128,7 +141,7 @@ extension AppleMusicAPI {
 // MARK: - URL Handling
 
 extension AppleMusicAPI {
-    private func getUrlRequest(for paths: [String], method: HTTPMethod = .get, queries: [String:String] = [:]) throws -> URLRequest  {
+    private func getUrlRequest(for paths: [String], method: HTTPMethod = .get, queries: [String:String] = [:], requiresUserAccess: Bool = true) throws -> URLRequest  {
         var components = URLComponents(string: baseUrl)!
         components.queryItems = queries.map { key, value in
             URLQueryItem(name: key, value: value)
@@ -141,17 +154,22 @@ extension AppleMusicAPI {
             url.appendPathComponent(path)
         }
         
-        return getAuthenticatedUrl(url: url, method: method)
+        return getAuthenticatedUrl(url: url, method: method, requiresUserAccess: requiresUserAccess)
     }
     
-    private func getAuthenticatedUrl(url: URL, method: HTTPMethod) -> URLRequest {
-        guard developerToken != nil, userToken != nil else {
+    private func getAuthenticatedUrl(url: URL, method: HTTPMethod, requiresUserAccess: Bool) -> URLRequest {
+        guard isInialized() else {
             fatalError("Apple Music manager not initialized, call initialize() before use")
+        }
+        if requiresUserAccess && userToken == nil {
+            fatalError("Apple Music manager not initialized with user access, call initialize() before use")
         }
         
         var request = URLRequest(url: url)
         request.addValue("Bearer \(developerToken!)", forHTTPHeaderField: "Authorization")
-        request.addValue(userToken!, forHTTPHeaderField: "Music-User-Token")
+        if requiresUserAccess {
+            request.addValue(userToken!, forHTTPHeaderField: "Music-User-Token")
+        }
 
         request.httpMethod = method.rawValue
         return request
@@ -213,18 +231,18 @@ extension AppleMusicAPI {
         guard storefront != nil else {
             fatalError("Apple Music manager not initialized, call initialize() before use")
         }
-        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.catalog], storefront!, Endpoint[.playlists], id])
+        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.catalog], storefront!, Endpoint[.playlists], id], requiresUserAccess: false)
         if let url = url {
-            arrayRequest(url: url, completion: completion)
+            arrayRequest(url: url, requiresUserAccess: false, completion: completion)
         } else {
             completion(nil, ApiError.invalidUrl)
         }
     }
     
     public func getCatalogPlaylistSongs(id: String, completion: @escaping ([Song]?, Error?) -> Void) {
-        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.catalog], storefront!, Endpoint[.playlists], id, Endpoint[.tracks]])
+        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.catalog], storefront!, Endpoint[.playlists], id, Endpoint[.tracks]], requiresUserAccess: false)
         if let url = url {
-            arrayRequest(url: url, completion: completion)
+            arrayRequest(url: url, requiresUserAccess: false, completion: completion)
         } else {
             completion(nil, ApiError.invalidUrl)
         }
@@ -290,9 +308,9 @@ extension AppleMusicAPI {
         guard storefront != nil else {
             fatalError("Apple Music manager not initialized, call initialize() before use")
         }
-        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.catalog], storefront!, Endpoint[.albums], id])
+        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.catalog], storefront!, Endpoint[.albums], id], requiresUserAccess: false)
         if let url = url {
-            arrayRequest(url: url, completion: completion)
+            arrayRequest(url: url, requiresUserAccess: false, completion: completion)
         } else {
             completion(nil, ApiError.invalidUrl)
         }
@@ -325,9 +343,9 @@ extension AppleMusicAPI {
         guard storefront != nil else {
             fatalError("Apple Music manager not initialized, call initialize() before use")
         }
-        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.catalog], storefront!, Endpoint[.artists], id])
+        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.catalog], storefront!, Endpoint[.artists], id], requiresUserAccess: false)
         if let url = url {
-            arrayRequest(url: url, completion: completion)
+            arrayRequest(url: url, requiresUserAccess: false, completion: completion)
         } else {
             completion(nil, ApiError.invalidUrl)
         }
@@ -360,9 +378,9 @@ extension AppleMusicAPI {
         guard storefront != nil else {
             fatalError("Apple Music manager not initialized, call initialize() before use")
         }
-        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.catalog], storefront!, Endpoint[.songs], id])
+        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.catalog], storefront!, Endpoint[.songs], id], requiresUserAccess: false)
         if let url = url {
-            arrayRequest(url: url, completion: completion)
+            arrayRequest(url: url, requiresUserAccess: false, completion: completion)
         } else {
             completion(nil, ApiError.invalidUrl)
         }
@@ -372,7 +390,7 @@ extension AppleMusicAPI {
         guard storefront != nil else {
             fatalError("Apple Music manager not initialized, call initialize() before use")
         }
-        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.catalog], storefront!, Endpoint[.songs]], queries: ["filter[isrc]": isrcId])
+        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.catalog], storefront!, Endpoint[.songs]], queries: ["filter[isrc]": isrcId], requiresUserAccess: false)
         if let url = url {
             let wrappedCompletion: ([Song]?, Error?) -> Void = {songs, error in
                 if let songs = songs {
@@ -381,7 +399,7 @@ extension AppleMusicAPI {
                     completion(nil, error)
                 }
             }
-            arrayRequest(url: url, completion: wrappedCompletion)
+            arrayRequest(url: url, requiresUserAccess: false, completion: wrappedCompletion)
         } else {
             completion(nil, ApiError.invalidUrl)
         }
@@ -412,7 +430,7 @@ extension AppleMusicAPI {
         if !searchTypes.isEmpty {
             queries["types"] = searchTypes.map { $0.rawValue }.joined(separator: ",")
         }
-        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.catalog], storefront!, Endpoint[.search]], queries: queries)
+        let url = try? getUrlRequest(for: [Endpoint[.version], Endpoint[.catalog], storefront!, Endpoint[.search]], queries: queries, requiresUserAccess: false)
         
         if let url = url {
             let searchCompletion: (SearchResponse?, Error?) -> Void = { response, error in
