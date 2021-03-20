@@ -27,12 +27,17 @@ public class AppleMusicAPI {
         storefront = "gb"
     }
     
-    public func isInialized() -> Bool {
+    public func isInitialized() -> Bool {
         return developerToken != nil
     }
     
     public func hasUserAccess() -> Bool {
         return developerToken != nil && userToken != nil
+    }
+    
+    public func forgetTokens() {
+        developerToken = nil
+        userToken = nil
     }
 }
 
@@ -158,7 +163,7 @@ extension AppleMusicAPI {
     }
     
     private func getAuthenticatedUrl(url: URL, method: HTTPMethod, requiresUserAccess: Bool) -> URLRequest {
-        guard isInialized() else {
+        guard isInitialized() else {
             fatalError("Apple Music manager not initialized, call initialize() before use")
         }
         if requiresUserAccess && userToken == nil {
